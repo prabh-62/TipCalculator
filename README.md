@@ -2,8 +2,8 @@
 
 Calculate Tips and share the bill among your friends
 
-![Landscape Mode](/ReadMe/landscape.gif?raw=true "Landscape Mode")
+<img src="ReadMe/portrait.gif" alt=Portrait Mode" width="400px">
 
-![Portrait Mode](/ReadMe/portrait.gif?raw=true "Portrait Mode")
+<img src="ReadMe/landscape.gif" alt="Landscape Mode" width="600px">
 
 To Clear All Fields, Swipe from Top
