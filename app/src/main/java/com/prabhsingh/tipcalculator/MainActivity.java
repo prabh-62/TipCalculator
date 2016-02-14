@@ -11,12 +11,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, SwipeRefreshLayout.OnRefreshListener {
+public class MainActivity extends AppCompatActivity
+        implements AdapterView.OnItemSelectedListener,
+                    SwipeRefreshLayout.OnRefreshListener {
 
+    //Tag for Debugging Puposes
     private static final String TAG = "TIP";
 
     private SwipeRefreshLayout swipeContainer;
@@ -31,7 +34,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private TextView tipAmountField;
     private TextView grandTotalField;
 
-    private TextView splitField;
+    private SeekBar splitField;
+    private TextView splitProgress;
     private TextView amountPerPersonField;
 
     private Boolean firstTime = true;
@@ -61,37 +65,37 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         tipAmountField = (TextView) findViewById(R.id.tipAmountField);
         grandTotalField = (TextView) findViewById(R.id.grandTotalField);
 
-        splitField = (TextView) findViewById(R.id.splitField);
+        splitField = (SeekBar) findViewById(R.id.splitField);
+        splitProgress = (TextView) findViewById(R.id.splitProgress);
         amountPerPersonField = (TextView) findViewById(R.id.amountPerPersonField);
-
         //All IDs Mapped
 
-        //All values should change accordingly
-        billAmountField.addTextChangedListener(mTextEditorWatcher);
-        splitField.addTextChangedListener(SplitWatcher);
-        billAmountField.addTextChangedListener(SplitWatcher);
 
-        //Hiding Card_View2 and Card_View3 initially
+        //All values should change accordingly so Listeners added to Seekbar and EditText
+        billAmountField.addTextChangedListener(mTextEditorWatcher);
+        splitField.setOnSeekBarChangeListener(SplitWatcher);
+
+        //Hiding Card_View2 and Card_View3 initially for the Animation
         card_view2.setTranslationY(1500f);
         card_view3.setTranslationY(2000f);
 
 
         //Retrieving Spinner Values for Tip Percentage
-        // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.tip_percent, android.R.layout.simple_spinner_item);
-        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
         tipPercentField.setAdapter(adapter);
-
         tipPercentField.setOnItemSelectedListener(this);
 
         //Swipe Gesture Support
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(this);
-    }
 
+        //SeekBar Initial setup
+        splitField.setProgress(1);
+        splitField.incrementProgressBy(1);
+        splitField.setMax(20);
+    }
 
     //Clear all fields by swiping from top to down
     @Override
@@ -99,12 +103,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         billAmountField.setText("");
         tipAmountField.setText("$0.00");
         grandTotalField.setText("$0.00");
-        splitField.setText("0");
+        splitField.setProgress(1);
         amountPerPersonField.setText("$0.00");
 
         Log.i(TAG, "Swipe to Refresh initiated");
     }
 
+    //All the Calculations are in this method and ChangeSplit()
     public void display() {
         try {
             amount = Double.parseDouble(billAmountField.getText().toString());
@@ -115,6 +120,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         tipAmountField.setText("$" + String.format("%.2f", (Double) ((tipPercent / 100.0f) * amount)));
         grandTotalField.setText("$" + String.format("%.2f", (Double) (amount + ((tipPercent / 100.0f) * amount))));
 
+        //If Split field is pre-selected(Orientation), adjust the distribution again.
+        changeSplit();
+
         if (animate == true) {
             //Bringing the cards in the view
             card_view2.animate().translationYBy(-1500f).setDuration(1500);
@@ -124,11 +132,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    //Distributing Money among friends
+    public void changeSplit() {
+        try {
+            split = splitField.getProgress();
+            double grandTotal = Double.parseDouble(grandTotalField.getText().toString().substring(1, grandTotalField.getText().length()));
+            amountPerPersonField.setText("$" + String.format("%.2f", grandTotal / split));
+        } catch (Exception ex) {
+            Log.e(TAG, ex.toString());
+        }
+    }
 
-    public void onItemSelected(AdapterView<?> parent, View view,
-                               int pos, long id) {
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
 
         if (firstTime == true) {
+            //Don't do anything when the user opens up the App
             firstTime = false;
         } else if (firstTime == false) {
             Double amount = 0.00;
@@ -140,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             Double tipPercent = 0.00;
             try {
+                //Why Substring: to remove $ sign
                 tipPercent = Double.parseDouble(parent.getItemAtPosition(pos).toString().substring(0, 2));
             } catch (Exception ex) {
                 Log.e(TAG, ex.toString());
@@ -148,6 +167,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             tipAmountField.setText("$" + String.format("%.2f", (Double) ((tipPercent / 100.0f) * amount)));
             grandTotalField.setText("$" + String.format("%.2f", (Double) (amount + ((tipPercent / 100.0f) * amount))));
 
+            //If Split field is pre-selected, adjust the distribution again.
+            changeSplit();
 
             if (animate == true) {
                 //Bringing the cards in the view
@@ -161,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
+        //Have to implement Abstract Method even if nothing needs to be done
     }
 
     private final TextWatcher mTextEditorWatcher = new TextWatcher() {
@@ -181,31 +203,28 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
-    private final TextWatcher SplitWatcher = new TextWatcher() {
-
+    private final SeekBar.OnSeekBarChangeListener SplitWatcher = new SeekBar.OnSeekBarChangeListener() {
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             try {
-                split = Integer.parseInt(splitField.getText().toString());
-                double grandTotal = Double.parseDouble(grandTotalField.getText().toString().substring(1, grandTotalField.getText().length()));
-                amountPerPersonField.setText("$" + String.format("%.2f", grandTotal / split));
+                //Set the label for SeekBar progress
+                splitProgress.setText(Integer.toString(progress));
             } catch (Exception ex) {
                 Log.e(TAG, ex.toString());
             }
+            changeSplit();
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
         }
     };
-
-
     //Orientation Check
 
 
@@ -220,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onPause();
         Log.v(TAG, "onPause() Called");
     }
-
 
     @Override
     protected void onResume() {
