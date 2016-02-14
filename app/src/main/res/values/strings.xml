@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Tip Calculator</string>
+    <string name="cost"></string>
+    <string name="restaurant_menu_icon">Restaurant_Menu_Icon</string>
+    <string name="bill_amount">Bill Amount</string>
+    <string name="tip_percent">Tip Percent</string>
+    <string name="tip_amount">Tip Amount</string>
+    <string name="grand_total">Grand Total</string>
+    <string name="amount_per_person">Amount Per Person</string>
+    <string name="split_among">Split Among</string>
+    <string name="tip">Tip</string>
+    <string name="amt_person">Amt/Person</string>
+    <string-array name="tip_percent">
+        <item>05%</item>
+        <item>10%</item>
+        <item>15%</item>
+        <item>20%</item>
+        <item>25%</item>
+    </string-array>
+</resources>
