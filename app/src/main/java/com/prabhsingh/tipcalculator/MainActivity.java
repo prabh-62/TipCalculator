@@ -42,9 +42,9 @@ public class MainActivity extends AppCompatActivity
     private Boolean animate = true;
 
     //Variables which will save the Instance State
-    private static String AMOUNT_INDEX = "amount";
-    private static String TIP_INDEX = "tip";
-    private static String SPLIT_INDEX = "split";
+    private static final String AMOUNT_INDEX = "amount";
+    private static final String TIP_INDEX = "tip";
+    private static final String SPLIT_INDEX = "split";
     private Double tipPercent = 5.0;
     private Double amount = 0.0;
     private int split = 1;
@@ -267,18 +267,26 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.v(TAG, "Saved Instance State, Amount_INDEX:" + AMOUNT_INDEX);
+        Log.v(TAG, "Saved Instance State, AMOUNT_INDEX:" + AMOUNT_INDEX);
         outState.putDouble(AMOUNT_INDEX, amount);
+
+        Log.v(TAG, "Saved Instance State, TIP_INDEX:" + TIP_INDEX);
         outState.putDouble(TIP_INDEX, tipPercent);
+
+        Log.v(TAG, "Saved Instance State, SPLIT_INDEX:" + SPLIT_INDEX);
         outState.putInt(SPLIT_INDEX, split);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        Log.v(TAG, "Restored Instance State " + savedInstanceState.getInt(AMOUNT_INDEX, 0));
-        amount = savedInstanceState.getDouble(AMOUNT_INDEX, 100);
-        tipPercent = savedInstanceState.getDouble(TIP_INDEX, 5);
-        split = savedInstanceState.getInt(SPLIT_INDEX, 1);
+        amount = savedInstanceState.getDouble(AMOUNT_INDEX);
+        Log.v(TAG, "Restored Instance State " + amount);
+
+        tipPercent = savedInstanceState.getDouble(TIP_INDEX);
+        Log.v(TAG, "Restored Instance State " + tipPercent);
+
+        split = savedInstanceState.getInt(SPLIT_INDEX);
+        Log.v(TAG, "Restored Instance State " + split);
     }
 }
